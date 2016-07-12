@@ -34,6 +34,28 @@ class DtreeSuite extends FunSuite {
       (1.0 - 0.75*(.9182958340544896) - 0.25*0.0) +- .002)
   }
 
+  test("find best split on a col -- splitVariable") {
+    val d1 = Vector(1, 1, 1, "i")
+    val d2 = Vector(1, 1, 0, "i")
+    val d3 = Vector(0, 0, 1, "ii")
+    val d4 = Vector(1, 0, 0, "ii")
+    val d = Vector(d1, d2, d3, d4)
+    assert(splitVariable(d, 1) ===
+      (Vector(d1, d2), Vector(d3, d4), (1, Vector(d1, d2).last.last))
+    )
+  }
+
+  test("find best split overall -- decideSplit") {
+    val d1 = Vector(1, 1, 1, "i")
+    val d2 = Vector(1, 1, 0, "i")
+    val d3 = Vector(0, 0, 1, "ii")
+    val d4 = Vector(1, 0, 0, "ii")
+    val d = Vector(d1, d2, d3, d4)
+    assert(decideSplit(d) ===
+      (Vector(d1, d2), Vector(d3, d4), (1, Vector(d1, d2).last.last))
+    )
+  }
+
   test("findType basic cases") {
     assert(findType("ABC") === "String")
     assert(findType(1) === "Int")
