@@ -1,11 +1,32 @@
 package decision_tree
 
+
+
+sealed trait Dtree
+case class Leaf(label: Any) extends Dtree
+case class Branch(left: Dtree, right: Dtree, splitValue: (Int, Any),
+                  data: Vector[Vector[Any]]) extends Dtree
+
+
 object Dtree {
 
   type Labels = Vector[Any]
   type Point = Vector[Any]
   type Points = Vector[Point]
 
+
+  def predict(dt: Dtree, point: Point): Any =
+    dt match {
+      case Leaf(x) => x
+      case Branch(left, right, splitValue, data) => {
+        if (splitValue._2 == point(splitValue._1)) predict(left, point)
+        else predict(right, point)
+      }
+  }
+
+  def fit(data: Points): Dtree = {
+    ???
+  }
 
   def log2(x: Double): Double = scala.math.log(x) / scala.math.log(2)
 
