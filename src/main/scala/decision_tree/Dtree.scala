@@ -32,7 +32,7 @@ object Dtree {
   }
 
   def decideSplit(data: Points): (Points, Points, (Int, Any)) = {
-    val bestSplitsOnCols = (0 until data(0).length - 1).map(col => splitVariable(data, col))
+    val bestSplitsOnCols = (0 until data(0).length - 2).map(col => splitVariable(data, col))
     val bestSplitWithInfoGain = bestSplitsOnCols.map(x => (x,
       infoGain(data.map(z => z.last), x._1.map(z => z.last), x._2.map(z => z.last)))).
       maxBy(m => m._2)
