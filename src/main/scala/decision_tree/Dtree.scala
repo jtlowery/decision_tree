@@ -25,7 +25,27 @@ object Dtree {
   }
 
   def fit(data: Points): Dtree = {
-    ???
+    val split = decideSplit(data)
+    lazy val l = if (entropy(split._1.map(x => x.last)) == 0) Leaf(split._1.last.last) else fit(split._1)
+    lazy val r = if (entropy(split._2.map(x => x.last)) == 0) Leaf(split._2.last.last) else fit(split._2)
+    Branch(l, r, split._3, data)
+  }
+
+  def decideSplit(data: Points): (Points, Points, (Int, Any)) = {
+    val bestSplitsOnCols = (0 until data(0).length - 1).map(col => splitVariable(data, col))
+    val bestSplitWithInfoGain = bestSplitsOnCols.map(x => (x,
+      infoGain(data.map(z => z.last), x._1.map(z => z.last), x._2.map(z => z.last)))).
+      maxBy(m => m._2)
+    bestSplitWithInfoGain._1
+  }
+
+  def splitVariable(data: Points, idx: Int): (Points, Points, (Int, Any)) = {
+    val possibleVals = data.map(x => x(idx)).distinct
+    val partitions = possibleVals.map(p => data.partition(x => x(idx) == p))
+    val partsWithInfoGain = partitions.map(x => (x,
+      infoGain(data.map(z => z.last), x._1.map(z => z.last), x._2.map(z => z.last))))
+    val maxPartition = partsWithInfoGain.maxBy(m => m._2)._1
+    (maxPartition._1, maxPartition._2, (idx, maxPartition._1.last.last))
   }
 
   def log2(x: Double): Double = scala.math.log(x) / scala.math.log(2)
