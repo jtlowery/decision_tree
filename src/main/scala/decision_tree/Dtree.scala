@@ -60,7 +60,7 @@ object Dtree {
     labels.groupBy(x => x).
       mapValues(x => x.length.toDouble / labels.length).
       mapValues(p => -p * log2(p)).
-      foldLeft(0.0)(_+_._2)
+      foldLeft(0.0)(_ + _._2)
   }
 
   def infoGain(parent: Labels, split1: Labels, split2: Labels): Double = {
