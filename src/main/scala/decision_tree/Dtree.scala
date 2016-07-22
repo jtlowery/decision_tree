@@ -3,19 +3,19 @@ package decision_tree
 
 
 sealed trait Dtree
-case class Leaf(label: Any) extends Dtree
-case class Branch(left: Dtree, right: Dtree, splitValue: (Int, Any),
-                  data: Vector[Vector[Any]]) extends Dtree
+case class Leaf(label: AnyVal) extends Dtree
+case class Branch(left: Dtree, right: Dtree, splitValue: (Int, AnyVal),
+                  data: Vector[Vector[AnyVal]]) extends Dtree
 
 
 object Dtree {
 
-  type Labels = Vector[Any]
-  type Point = Vector[Any]
+  type Labels = Vector[AnyVal]
+  type Point = Vector[AnyVal]
   type Points = Vector[Point]
 
 
-  def predict(dt: Dtree, point: Point): Any =
+  def predict(dt: Dtree, point: Point): AnyVal =
     dt match {
       case Leaf(x) => x
       case Branch(left, right, splitValue, data) => {
@@ -31,7 +31,7 @@ object Dtree {
     Branch(l, r, split._3, data)
   }
 
-  def decideSplit(data: Points): (Points, Points, (Int, Any)) = {
+  def decideSplit(data: Points): (Points, Points, (Int, AnyVal)) = {
     val bestSplitsOnCols = (0 until data(0).length - 2).map(col => splitVariable(data, col))
     val bestSplitWithInfoGain = bestSplitsOnCols.map(x => (x,
       infoGain(data.map(z => z.last), x._1.map(z => z.last), x._2.map(z => z.last)))).
@@ -39,7 +39,7 @@ object Dtree {
     bestSplitWithInfoGain._1
   }
 
-  def splitVariable(data: Points, idx: Int): (Points, Points, (Int, Any)) = {
+  def splitVariable(data: Points, idx: Int): (Points, Points, (Int, AnyVal)) = {
     val possibleVals = data.map(x => x(idx)).distinct
     val partitions = possibleVals.map(p => data.partition(x => x(idx) == p))
     val partsWithInfoGain = partitions.map(x => (x,
@@ -50,10 +50,10 @@ object Dtree {
 
   def log2(x: Double): Double = scala.math.log(x) / scala.math.log(2)
 
-  def findType(o: Any): String = o match {
+  def findType(o: AnyVal): String = o match {
     case d: Double => "Double"
     case i: Int => "Int"
-    case s: String => "String"
+    case _ => "Other"
   }
 
   def entropy(labels: Labels): Double = {

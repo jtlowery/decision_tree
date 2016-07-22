@@ -18,8 +18,7 @@ class DtreeSuite extends FunSuite {
 
   test("entropy basic cases") {
     assert(entropy(Vector(1, 1, 2, 2)) === 1.0)
-    assert(entropy(Vector("a", "a", "b", "b")) === 1.0)
-    assert(entropy(Vector("a", "a", "a", "a")) === 0.0)
+    assert(entropy(Vector(1, 1, 1, 1)) === 0.0)
     assert(entropy(Vector(1, 1, 1, 2)) === (.81 +- .002))
   }
 
@@ -35,10 +34,10 @@ class DtreeSuite extends FunSuite {
   }
 
   test("find best split on a col -- splitVariable") {
-    val d1 = Vector(1, 1, 1, "i")
-    val d2 = Vector(1, 1, 0, "i")
-    val d3 = Vector(0, 0, 1, "ii")
-    val d4 = Vector(1, 0, 0, "ii")
+    val d1 = Vector(1, 1, 1, 1)
+    val d2 = Vector(1, 1, 0, 1)
+    val d3 = Vector(0, 0, 1, 2)
+    val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
     assert(splitVariable(d, 1) ===
       (Vector(d1, d2), Vector(d3, d4), (1, Vector(d1, d2).last.last))
@@ -46,10 +45,10 @@ class DtreeSuite extends FunSuite {
   }
 
   test("find best split on another col -- splitVariable") {
-    val d1 = Vector(1, 1, 1, "i")
-    val d2 = Vector(1, 1, 0, "i")
-    val d3 = Vector(0, 0, 1, "ii")
-    val d4 = Vector(1, 0, 0, "ii")
+    val d1 = Vector(1, 1, 1, 1)
+    val d2 = Vector(1, 1, 0, 1)
+    val d3 = Vector(0, 0, 1, 2)
+    val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
     assert(splitVariable(d, 0) ===
       (Vector(d1, d2, d4), Vector(d3), (0, Vector(d1, d2, d4).last.last))
@@ -57,10 +56,10 @@ class DtreeSuite extends FunSuite {
   }
 
   test("find best split overall -- decideSplit") {
-    val d1 = Vector(1, 1, 1, "i")
-    val d2 = Vector(1, 1, 0, "i")
-    val d3 = Vector(0, 0, 1, "ii")
-    val d4 = Vector(1, 0, 0, "ii")
+    val d1 = Vector(1, 1, 1, 1)
+    val d2 = Vector(1, 1, 0, 1)
+    val d3 = Vector(0, 0, 1, 2)
+    val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
     assert(decideSplit(d) ===
       (Vector(d1, d2), Vector(d3, d4), (1, Vector(d1, d2).last.last))
@@ -68,7 +67,6 @@ class DtreeSuite extends FunSuite {
   }
 
   test("findType basic cases") {
-    assert(findType("ABC") === "String")
     assert(findType(1) === "Int")
     assert(findType(1.0) === "Double")
   }
