@@ -66,6 +66,40 @@ class DtreeSuite extends FunSuite {
     )
   }
 
+  /*test("fit basic") {
+    val d1 = Vector(1, 1, 1, 1)
+    val d2 = Vector(1, 1, 0, 1)
+    val d3 = Vector(0, 0, 1, 2)
+    val d4 = Vector(1, 0, 0, 2)
+    val d = Vector(d1, d2, d3, d4)
+    fit(d)
+  }*/
+
+  test("predict with a tree of a single leaf") {
+    val d1 = Vector(1, 1, 1, 1)
+    assert(predict(Leaf(1), d1) === 1)
+    assert(predict(Leaf(2), d1) === 2)
+  }
+
+  test("predict with a tree of two leaves and a single branch") {
+    val d1 = Vector(1, 1, 1, 1)
+    val d2 = Vector(1, 1, 0, 1)
+    val d3 = Vector(0, 0, 1, 2)
+    val d4 = Vector(1, 0, 0, 2)
+    val d = Vector(d1, d2, d3, d4)
+    val testTree = Branch(Leaf(1), Leaf(2), (1, 1), d)
+    assert(predict(testTree, d1) === 1)
+    assert(predict(testTree, d2) === 1)
+    assert(predict(testTree, d3) === 2)
+    assert(predict(testTree, d4) === 2)
+
+    val testTree2 = Branch(Leaf(2), Leaf(1), (1, 0), d)
+    assert(predict(testTree2, d1) === 1)
+    assert(predict(testTree2, d2) === 1)
+    assert(predict(testTree2, d3) === 2)
+    assert(predict(testTree2, d4) === 2)
+  }
+
   test("findType basic cases") {
     assert(findType(1) === "Int")
     assert(findType(1.0) === "Double")
