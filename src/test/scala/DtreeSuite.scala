@@ -66,14 +66,14 @@ class DtreeSuite extends FunSuite {
     )
   }
 
-  /*test("fit basic") {
+  test("fit basic") {
     val d1 = Vector(1, 1, 1, 1)
     val d2 = Vector(1, 1, 0, 1)
     val d3 = Vector(0, 0, 1, 2)
     val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
-    fit(d)
-  }*/
+    assert(fit(d) === Branch(Leaf(1), Leaf(2), (1, 1), d))
+  }
 
   test("predict with a tree of a single leaf") {
     val d1 = Vector(1, 1, 1, 1)
