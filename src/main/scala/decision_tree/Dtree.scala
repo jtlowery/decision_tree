@@ -45,7 +45,7 @@ object Dtree {
     val partsWithInfoGain = partitions.map(x => (x,
       infoGain(data.map(z => z.last), x._1.map(z => z.last), x._2.map(z => z.last))))
     val maxPartition = partsWithInfoGain.maxBy(m => m._2)._1
-    (maxPartition._1, maxPartition._2, (idx, maxPartition._1.last.last))
+    (maxPartition._1, maxPartition._2, (idx, maxPartition._1.last(idx)))
   }
 
   def log2(x: Double): Double = scala.math.log(x) / scala.math.log(2)

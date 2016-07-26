@@ -51,7 +51,7 @@ class DtreeSuite extends FunSuite {
     val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
     assert(splitVariable(d, 0) ===
-      (Vector(d1, d2, d4), Vector(d3), (0, Vector(d1, d2, d4).last.last))
+      (Vector(d1, d2, d4), Vector(d3), (0, Vector(d1, d2, d4).last(0)))
     )
   }
 
