@@ -4,7 +4,8 @@ package decision_tree
 
 sealed trait Dtree
 case class Leaf(label: AnyVal) extends Dtree
-case class Branch(left: Dtree, right: Dtree, splitValue: (Int, AnyVal),
+case class Branch(left: Dtree, right: Dtree, splitCol: Int,
+                  splitPredicate: AnyVal => Boolean,
                   data: Vector[Vector[AnyVal]]) extends Dtree
 
 
@@ -18,8 +19,8 @@ object Dtree {
   def predict(dt: Dtree, point: Point): AnyVal =
     dt match {
       case Leaf(x) => x
-      case Branch(left, right, splitValue, data) => {
-        if (splitValue._2 == point(splitValue._1)) predict(left, point)
+      case Branch(left, right, splitCol, splitPredicate, data) => {
+        if (splitPredicate(point(splitCol))) predict(left, point)
         else predict(right, point)
       }
   }
