@@ -29,9 +29,19 @@ object Dtree {
 
   def fit(data: Points): Dtree = {
     val split = decideSplit(data)
-    lazy val l = if (entropy(split._1.map(x => x.last)) == 0) Leaf(split._1.last.last) else fit(split._1)
-    lazy val r = if (entropy(split._2.map(x => x.last)) == 0) Leaf(split._2.last.last) else fit(split._2)
+    lazy val l = if (terminateSplitting(split._1)) Leaf(findLabel(split._1.map(x => x.last)))
+                  else fit(split._1)
+    lazy val r = if (terminateSplitting(split._2)) Leaf(findLabel(split._2.map(x => x.last)))
+                  else fit(split._2)
     Branch(l, r, split._3, split._4, split._5, data)
+  }
+
+  def terminateSplitting(data: Points): Boolean = {
+    entropy(data.map(x => x.last)) == 0
+  }
+
+  def findLabel(labels: Labels): AnyVal = {
+    labels.groupBy(x => x).maxBy(_._2.size)._1
   }
 
   def decideSplit(data: Points): (Points, Points, Double, Int, AnyVal => Boolean) = {
