@@ -30,7 +30,7 @@ class DtreeSuite extends FunSuite {
 
   test("information gain and entropy return same result") {
     assert(entropy(Vector(1,1,2,2)) - .75 * entropy(Vector(1,1,2)) - .25*entropy(Vector(2)) ===
-      (1.0 - 0.75*(.9182958340544896) - 0.25*0.0) +- .002)
+      (1.0 - 0.75 * .9182958340544896 - 0.25*0.0) +- .002)
   }
 
   test("find best split on a col -- splitVariable") {
@@ -39,9 +39,14 @@ class DtreeSuite extends FunSuite {
     val d3 = Vector(0, 0, 1, 2)
     val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
-    assert(splitVariable(d, 1) ===
-      (Vector(d1, d2), Vector(d3, d4), (1, Vector(d1, d2).last.last))
-    )
+
+    val splitResult = splitVariable(d, 1)
+    assert(splitResult._1 === Vector(d1, d2))
+    assert(splitResult._2 === Vector(d3, d4))
+    assert(splitResult._3 === 1.0)
+    assert(splitResult._4 === 1)
+    assert(splitResult._5(1) === true)
+    assert(splitResult._5(0) === false)
   }
 
   test("find best split on another col -- splitVariable") {
@@ -50,9 +55,14 @@ class DtreeSuite extends FunSuite {
     val d3 = Vector(0, 0, 1, 2)
     val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
-    assert(splitVariable(d, 0) ===
-      (Vector(d1, d2, d4), Vector(d3), (0, Vector(d1, d2, d4).last(0)))
-    )
+
+    val splitResult = splitVariable(d, 0)
+    assert(splitResult._1 === Vector(d1, d2, d4))
+    assert(splitResult._2 === Vector(d3))
+    assert(splitResult._3 === infoGain(Vector(1, 1, 2, 2), Vector(1, 1, 2), Vector(2)))
+    assert(splitResult._4 === 0)
+    assert(splitResult._5(1) === true)
+    assert(splitResult._5(0) === false)
   }
 
   test("find best split overall -- decideSplit") {
@@ -61,9 +71,14 @@ class DtreeSuite extends FunSuite {
     val d3 = Vector(0, 0, 1, 2)
     val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
-    assert(decideSplit(d) ===
-      (Vector(d1, d2), Vector(d3, d4), (1, Vector(d1, d2).last.last))
-    )
+
+    val splitResult = splitVariable(d, 1)
+    assert(splitResult._1 === Vector(d1, d2))
+    assert(splitResult._2 === Vector(d3, d4))
+    assert(splitResult._3 === 1.0)
+    assert(splitResult._4 === 1)
+    assert(splitResult._5(1) === true)
+    assert(splitResult._5(0) === false)
   }
 
   test("fit basic") {
@@ -72,7 +87,19 @@ class DtreeSuite extends FunSuite {
     val d3 = Vector(0, 0, 1, 2)
     val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
-    assert(fit(d) === Branch(Leaf(1), Leaf(2), (1, 1), d))
+
+
+    val fitResult = fit(d)
+    fitResult match {
+      case Branch(l, r, iGain, idx, splitPred, data) =>
+        assert(l === Leaf(1))
+        assert(r === Leaf(2))
+        assert(iGain === 1.0)
+        assert(idx === 1)
+        assert(splitPred(1) === true)
+        assert(splitPred(0) === false)
+        assert(data === d)
+    }
   }
 
   test("predict with a tree of a single leaf") {
@@ -87,13 +114,14 @@ class DtreeSuite extends FunSuite {
     val d3 = Vector(0, 0, 1, 2)
     val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
-    val testTree = Branch(Leaf(1), Leaf(2), (1, 1), d)
+
+    val testTree = Branch(Leaf(1), Leaf(2), 1.0, 1, (x: AnyVal) => x == 1, d)
     assert(predict(testTree, d1) === 1)
     assert(predict(testTree, d2) === 1)
     assert(predict(testTree, d3) === 2)
     assert(predict(testTree, d4) === 2)
 
-    val testTree2 = Branch(Leaf(2), Leaf(1), (1, 0), d)
+    val testTree2 = Branch(Leaf(2), Leaf(1), 1.0, 1, (x: AnyVal) => x == 0, d)
     assert(predict(testTree2, d1) === 1)
     assert(predict(testTree2, d2) === 1)
     assert(predict(testTree2, d3) === 2)
