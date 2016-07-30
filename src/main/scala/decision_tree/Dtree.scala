@@ -4,10 +4,12 @@ package decision_tree
 
 sealed trait Dtree
 case class Leaf(label: AnyVal) extends Dtree
-case class Branch(left: Dtree, right: Dtree, splitCol: Int,
+case class Branch(left: Dtree,
+                  right: Dtree,
+                  informationGain: Double,
+                  splitCol: Int,
                   splitPredicate: AnyVal => Boolean,
                   data: Vector[Vector[AnyVal]]) extends Dtree
-
 
 object Dtree {
 
@@ -19,7 +21,7 @@ object Dtree {
   def predict(dt: Dtree, point: Point): AnyVal =
     dt match {
       case Leaf(x) => x
-      case Branch(left, right, splitCol, splitPredicate, data) => {
+      case Branch(left, right, informationGain, splitCol, splitPredicate, data) => {
         if (splitPredicate(point(splitCol))) predict(left, point)
         else predict(right, point)
       }
@@ -29,25 +31,35 @@ object Dtree {
     val split = decideSplit(data)
     lazy val l = if (entropy(split._1.map(x => x.last)) == 0) Leaf(split._1.last.last) else fit(split._1)
     lazy val r = if (entropy(split._2.map(x => x.last)) == 0) Leaf(split._2.last.last) else fit(split._2)
-    Branch(l, r, split._3, data)
+    Branch(l, r, split._3, split._4, split._5, data)
   }
 
-  def decideSplit(data: Points): (Points, Points, (Int, AnyVal)) = {
-    val bestSplitsOnCols = (0 until data(0).length - 2).map(col => splitVariable(data, col))
-    val bestSplitWithInfoGain = bestSplitsOnCols.map(x => (x,
-      infoGain(data.map(z => z.last), x._1.map(z => z.last), x._2.map(z => z.last)))).
-      maxBy(m => m._2)
-    bestSplitWithInfoGain._1
+  def decideSplit(data: Points): (Points, Points, Double, Int, AnyVal => Boolean) = {
+    val bestSplitsOnCols = (0 until data(0).length - 2).map(colIdx => splitVariable(data, colIdx))
+    val bestSplit = bestSplitsOnCols.maxBy(m => m._3)
+    (bestSplit._1, bestSplit._2, bestSplit._3, bestSplit._4, bestSplit._5)
   }
 
-  def splitVariable(data: Points, idx: Int): (Points, Points, (Int, AnyVal)) = {
+  def splitVariable(data: Points, idx: Int): (Points, Points, Double, Int, AnyVal => Boolean) = {
+    val samplePoint = data(0)(idx)
+    if (findType(samplePoint) == "Int") splitCategorical(data, idx)
+    else splitContinuous(data, idx)
+  }
+
+  def splitCategorical(data: Points, idx: Int): (Points, Points, Double, Int, AnyVal => Boolean) = {
     val possibleVals = data.map(x => x(idx)).distinct
-    val partitions = possibleVals.map(p => data.partition(x => x(idx) == p))
+    val partitions = possibleVals.map(p =>
+      (data.partition(x => x(idx) == p), (x: AnyVal) => x == p))
     val partsWithInfoGain = partitions.map(x => (x,
-      infoGain(data.map(z => z.last), x._1.map(z => z.last), x._2.map(z => z.last))))
-    val maxPartition = partsWithInfoGain.maxBy(m => m._2)._1
-    (maxPartition._1, maxPartition._2, (idx, maxPartition._1.last(idx)))
+      infoGain(data.map(z => z.last), x._1._1.map(z => z.last), x._1._2.map(z => z.last))))
+    val maxPartition = partsWithInfoGain.maxBy(m => m._2)
+    (maxPartition._1._1._1, maxPartition._1._1._2, maxPartition._2, idx, maxPartition._1._2)
   }
+
+  def splitContinuous(data: Points, idx: Int): (Points, Points, Double, Int, AnyVal => Boolean) = {
+    ???
+  }
+
 
   def log2(x: Double): Double = scala.math.log(x) / scala.math.log(2)
 
