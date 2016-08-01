@@ -3,6 +3,7 @@ A simple implementation of a decision tree made as practice while trying to wrap
 
 # Future Work
 - Add support for continuous variables
-- Refactor so that splits are made on functions not specific values
+- ~~Refactor so that splits are made on functions not specific values~~
 - Add tests for fit and predict
+  * ~~Simple tests~~
 - Extend for random forests
