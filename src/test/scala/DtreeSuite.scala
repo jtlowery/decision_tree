@@ -104,11 +104,47 @@ class DtreeSuite extends FunSuite {
     }
   }
 
+  test("test for maxDepth stopping of fit") {
+    val d1 = Vector(1, 1, 1, 1)
+    val d2 = Vector(1, 1, 0, 1)
+    val d3 = Vector(0, 0, 1, 2)
+    val d4 = Vector(1, 0, 0, 2)
+    val d = Vector(d1, d2, d3, d4)
+
+    val fitResult = fit(d, depth = 0, maxDepth = 1)
+    fitResult match {
+      case Leaf(x) => assert(x === 1)
+      case Branch(l, r, depth, iGain, idx, splitPred, data) =>
+        assert(false)
+    }
+  }
+
+  test("test terminate splitting on entropy") {
+    val d1 = Vector(1, 1, 1, 1)
+    val d2 = Vector(1, 1, 0, 1)
+    val d3 = Vector(0, 0, 1, 2)
+
+    val zeroEntropyData = Vector(d1, d2)
+    assert(terminateSplitting(zeroEntropyData, depth = 1, maxDepth = 10) === true)
+
+    val nonZeroEntropyData = Vector(d1, d2, d3)
+    assert(terminateSplitting(nonZeroEntropyData, depth = 1, maxDepth = 10) === false)
+  }
+
+  test("test terminate splitting on depth") {
+    val d2 = Vector(1, 1, 0, 1)
+    val d3 = Vector(0, 0, 1, 2)
+    val nonZeroEntropyData = Vector(d2, d3)
+    assert(terminateSplitting(nonZeroEntropyData, depth = 0, maxDepth = 1) === true)
+    assert(terminateSplitting(nonZeroEntropyData, depth = 0, maxDepth = 10) === false)
+  }
+
   test("predict with a tree of a single leaf") {
     val d1 = Vector(1, 1, 1, 1)
     assert(predict(Leaf(1), d1) === 1)
     assert(predict(Leaf(2), d1) === 2)
   }
+
 
   test("predict with a tree of two leaves and a single branch") {
     val d1 = Vector(1, 1, 1, 1)
