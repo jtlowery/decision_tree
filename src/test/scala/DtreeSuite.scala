@@ -100,6 +100,7 @@ class DtreeSuite extends FunSuite {
         assert(splitPred(1) === true)
         assert(splitPred(0) === false)
         assert(data === d)
+      case Leaf(_) => assert(false)
     }
   }
 

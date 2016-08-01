@@ -28,17 +28,27 @@ object Dtree {
       }
   }
 
-  def fit(data: Points, depth: Int = 0): Dtree = {
+  def fit(data: Points, depth: Int = 0, maxDepth: Int = 10): Dtree = {
     val split = decideSplit(data)
-    lazy val l = if (terminateSplitting(split._1)) Leaf(findLabel(split._1.map(x => x.last)))
-                  else fit(split._1, depth + 1)
-    lazy val r = if (terminateSplitting(split._2)) Leaf(findLabel(split._2.map(x => x.last)))
-                  else fit(split._2, depth + 1)
+    lazy val l =
+      if (terminateSplitting(split._1, depth, maxDepth)) {
+        Leaf(findLabel(split._1.map(x => x.last)))
+      }
+      else {
+        fit(split._1, depth + 1, maxDepth)
+      }
+    lazy val r =
+      if (terminateSplitting(split._2, depth, maxDepth)) {
+        Leaf(findLabel(split._2.map(x => x.last)))
+      }
+      else {
+        fit(split._2, depth + 1, maxDepth)
+      }
     Branch(l, r, depth, split._3, split._4, split._5, data)
   }
 
-  def terminateSplitting(data: Points): Boolean = {
-    entropy(data.map(x => x.last)) == 0
+  def terminateSplitting(data: Points, depth: Int, maxDepth: Int): Boolean = {
+    (entropy(data.map(x => x.last)) == 0) || (depth >= maxDepth - 1)
   }
 
   def findLabel(labels: Labels): AnyVal = {
