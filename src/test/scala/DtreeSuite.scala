@@ -91,9 +91,10 @@ class DtreeSuite extends FunSuite {
 
     val fitResult = fit(d)
     fitResult match {
-      case Branch(l, r, iGain, idx, splitPred, data) =>
+      case Branch(l, r, depth, iGain, idx, splitPred, data) =>
         assert(l === Leaf(1))
         assert(r === Leaf(2))
+        assert(depth === 0)
         assert(iGain === 1.0)
         assert(idx === 1)
         assert(splitPred(1) === true)
@@ -115,13 +116,13 @@ class DtreeSuite extends FunSuite {
     val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
 
-    val testTree = Branch(Leaf(1), Leaf(2), 1.0, 1, (x: AnyVal) => x == 1, d)
+    val testTree = Branch(Leaf(1), Leaf(2), 0, 1.0, 1, (x: AnyVal) => x == 1, d)
     assert(predict(testTree, d1) === 1)
     assert(predict(testTree, d2) === 1)
     assert(predict(testTree, d3) === 2)
     assert(predict(testTree, d4) === 2)
 
-    val testTree2 = Branch(Leaf(2), Leaf(1), 1.0, 1, (x: AnyVal) => x == 0, d)
+    val testTree2 = Branch(Leaf(2), Leaf(1), 0, 1.0, 1, (x: AnyVal) => x == 0, d)
     assert(predict(testTree2, d1) === 1)
     assert(predict(testTree2, d2) === 1)
     assert(predict(testTree2, d3) === 2)
