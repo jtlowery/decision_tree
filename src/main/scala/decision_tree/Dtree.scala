@@ -6,6 +6,7 @@ sealed trait Dtree
 case class Leaf(label: AnyVal) extends Dtree
 case class Branch(left: Dtree,
                   right: Dtree,
+                  depth: Int,
                   informationGain: Double,
                   splitCol: Int,
                   splitPredicate: AnyVal => Boolean,
@@ -21,19 +22,19 @@ object Dtree {
   def predict(dt: Dtree, point: Point): AnyVal =
     dt match {
       case Leaf(x) => x
-      case Branch(left, right, informationGain, splitCol, splitPredicate, data) => {
+      case Branch(left, right, depth, informationGain, splitCol, splitPredicate, data) => {
         if (splitPredicate(point(splitCol))) predict(left, point)
         else predict(right, point)
       }
   }
 
-  def fit(data: Points): Dtree = {
+  def fit(data: Points, depth: Int = 0): Dtree = {
     val split = decideSplit(data)
     lazy val l = if (terminateSplitting(split._1)) Leaf(findLabel(split._1.map(x => x.last)))
-                  else fit(split._1)
+                  else fit(split._1, depth + 1)
     lazy val r = if (terminateSplitting(split._2)) Leaf(findLabel(split._2.map(x => x.last)))
-                  else fit(split._2)
-    Branch(l, r, split._3, split._4, split._5, data)
+                  else fit(split._2, depth + 1)
+    Branch(l, r, depth, split._3, split._4, split._5, data)
   }
 
   def terminateSplitting(data: Points): Boolean = {
