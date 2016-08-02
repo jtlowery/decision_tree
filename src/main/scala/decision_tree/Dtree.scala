@@ -29,22 +29,15 @@ object Dtree {
   }
 
   def fit(data: Points, depth: Int = 0, maxDepth: Int = 10): Dtree = {
-    val split = decideSplit(data)
-    lazy val l =
-      if (terminateSplitting(split._1, depth, maxDepth)) {
-        Leaf(findLabel(split._1.map(x => x.last)))
-      }
-      else {
-        fit(split._1, depth + 1, maxDepth)
-      }
-    lazy val r =
-      if (terminateSplitting(split._2, depth, maxDepth)) {
-        Leaf(findLabel(split._2.map(x => x.last)))
-      }
-      else {
-        fit(split._2, depth + 1, maxDepth)
-      }
-    Branch(l, r, depth, split._3, split._4, split._5, data)
+    if (terminateSplitting(data, depth, maxDepth)) {
+      Leaf(findLabel(data.map(row => row.last)))
+    }
+    else {
+      val split = decideSplit(data)
+      lazy val l = fit(split._1, depth + 1, maxDepth)
+      lazy val r = fit(split._2, depth + 1, maxDepth)
+      Branch(l, r, depth, split._3, split._4, split._5, data)
+    }
   }
 
   def terminateSplitting(data: Points, depth: Int, maxDepth: Int): Boolean = {
