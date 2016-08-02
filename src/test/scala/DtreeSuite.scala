@@ -41,12 +41,12 @@ class DtreeSuite extends FunSuite {
     val d = Vector(d1, d2, d3, d4)
 
     val splitResult = splitVariable(d, 1)
-    assert(splitResult._1 === Vector(d1, d2))
-    assert(splitResult._2 === Vector(d3, d4))
-    assert(splitResult._3 === 1.0)
-    assert(splitResult._4 === 1)
-    assert(splitResult._5(1) === true)
-    assert(splitResult._5(0) === false)
+    assert(splitResult.leftData === Vector(d1, d2))
+    assert(splitResult.rightData === Vector(d3, d4))
+    assert(splitResult.iGain === 1.0)
+    assert(splitResult.index === 1)
+    assert(splitResult.predicate(1) === true)
+    assert(splitResult.predicate(0) === false)
   }
 
   test("find best split on another col -- splitVariable") {
@@ -57,12 +57,12 @@ class DtreeSuite extends FunSuite {
     val d = Vector(d1, d2, d3, d4)
 
     val splitResult = splitVariable(d, 0)
-    assert(splitResult._1 === Vector(d1, d2, d4))
-    assert(splitResult._2 === Vector(d3))
-    assert(splitResult._3 === infoGain(Vector(1, 1, 2, 2), Vector(1, 1, 2), Vector(2)))
-    assert(splitResult._4 === 0)
-    assert(splitResult._5(1) === true)
-    assert(splitResult._5(0) === false)
+    assert(splitResult.leftData === Vector(d1, d2, d4))
+    assert(splitResult.rightData === Vector(d3))
+    assert(splitResult.iGain === infoGain(Vector(1, 1, 2, 2), Vector(1, 1, 2), Vector(2)))
+    assert(splitResult.index === 0)
+    assert(splitResult.predicate(1) === true)
+    assert(splitResult.predicate(0) === false)
   }
 
   test("find best split overall -- decideSplit") {
@@ -73,12 +73,12 @@ class DtreeSuite extends FunSuite {
     val d = Vector(d1, d2, d3, d4)
 
     val splitResult = splitVariable(d, 1)
-    assert(splitResult._1 === Vector(d1, d2))
-    assert(splitResult._2 === Vector(d3, d4))
-    assert(splitResult._3 === 1.0)
-    assert(splitResult._4 === 1)
-    assert(splitResult._5(1) === true)
-    assert(splitResult._5(0) === false)
+    assert(splitResult.leftData === Vector(d1, d2))
+    assert(splitResult.rightData === Vector(d3, d4))
+    assert(splitResult.iGain === 1.0)
+    assert(splitResult.index === 1)
+    assert(splitResult.predicate(1) === true)
+    assert(splitResult.predicate(0) === false)
   }
 
   test("fit basic") {
