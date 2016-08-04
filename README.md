@@ -4,6 +4,9 @@ A simple implementation of a decision tree made as practice while trying to wrap
 # Future Work
 - Add support for continuous variables
 - ~~Refactor so that splits are made on functions not specific values~~
+- Add support for regression
+- Add Gini impurity
 - Add tests for fit and predict
   * ~~Simple tests~~
+- Clean up all the hard to follow tuple indexing
 - Extend for random forests
