@@ -34,15 +34,20 @@ object Dtree {
       }
   }
 
-  def fit(data: Points, depth: Int = 0, maxDepth: Int = 10): Dtree = {
+  def fit(data: Points, depth: Int = 0, maxDepth: Int = 10, minSamplesSplit: Int = 1): Dtree = {
     if (terminateSplitting(data, depth, maxDepth)) {
       Leaf(findLabel(data.map(row => row.last)))
     }
     else {
-      val split = decideSplit(data)
-      lazy val l = fit(split.leftData, depth + 1, maxDepth)
-      lazy val r = fit(split.rightData, depth + 1, maxDepth)
-      Branch(l, r, depth, split.iGain, split.index, split.predicate, data)
+      val split = decideSplit(data, minSamplesSplit)
+      if (split.isEmpty) {
+        Leaf(findLabel(data.map(row => row.last)))
+      }
+      else {
+        lazy val l = fit(split.get.leftData, depth + 1, maxDepth)
+        lazy val r = fit(split.get.rightData, depth + 1, maxDepth)
+        Branch(l, r, depth, split.get.iGain, split.get.index, split.get.predicate, data)
+      }
     }
   }
 
@@ -54,30 +59,44 @@ object Dtree {
     labels.groupBy(x => x).maxBy(_._2.size)._1
   }
 
-  def decideSplit(data: Points): Split = {
-    val bestSplitsOnCols = (0 until data(0).length - 2).map(colIdx => splitVariable(data, colIdx))
-    val bestSplit = bestSplitsOnCols.maxBy(m => m.iGain)
-    Split(bestSplit.leftData, bestSplit.rightData,
-      bestSplit.iGain, bestSplit.index, bestSplit.predicate)
+  def decideSplit(data: Points, minSamplesSplit: Int): Option[Split] = {
+    val bestSplitsOnCols = (0 until data(0).length - 2).
+      map(colIdx => splitVariable(data, colIdx, minSamplesSplit)).
+      filter(split => split.isDefined)
+    if (bestSplitsOnCols.isEmpty) {
+      None
+    }
+    else {
+      val bestSplit = bestSplitsOnCols.maxBy(m => m.get.iGain).get
+      Some(Split(bestSplit.leftData, bestSplit.rightData,
+        bestSplit.iGain, bestSplit.index, bestSplit.predicate))
+    }
   }
 
-  def splitVariable(data: Points, idx: Int): Split = {
+  def splitVariable(data: Points, idx: Int, minSamplesSplit: Int): Option[Split] = {
     val samplePoint = data(0)(idx)
-    if (findType(samplePoint) == "Int") splitCategorical(data, idx)
-    else splitContinuous(data, idx)
+    if (findType(samplePoint) == "Int") splitCategorical(data, idx, minSamplesSplit)
+    else splitContinuous(data, idx, minSamplesSplit)
   }
 
-  def splitCategorical(data: Points, idx: Int): Split = {
+  def splitCategorical(data: Points, idx: Int, minSamplesSplit: Int): Option[Split] = {
     val possibleVals = data.map(x => x(idx)).distinct
     val partitions = possibleVals.map(p =>
       (data.partition(x => x(idx) == p), (x: AnyVal) => x == p))
-    val partsWithInfoGain = partitions.map(x => (x,
-      infoGain(data.map(z => z.last), x._1._1.map(z => z.last), x._1._2.map(z => z.last))))
-    val maxPartition = partsWithInfoGain.maxBy(m => m._2)
-    Split(maxPartition._1._1._1, maxPartition._1._1._2, maxPartition._2, idx, maxPartition._1._2)
+    val partsWithMinSamples = partitions.filter(x => x._1._1.size > minSamplesSplit)
+    if (partsWithMinSamples.isEmpty) {
+      None
+    }
+    else {
+      val partsWithInfoGain = partsWithMinSamples.map(x => (x,
+        infoGain(data.map(z => z.last), x._1._1.map(z => z.last), x._1._2.map(z => z.last))))
+      val maxPartition = partsWithInfoGain.maxBy(m => m._2)
+      Some(Split(maxPartition._1._1._1, maxPartition._1._1._2,
+        maxPartition._2, idx, maxPartition._1._2))
+    }
   }
 
-  def splitContinuous(data: Points, idx: Int): Split = {
+  def splitContinuous(data: Points, idx: Int, minSamplesSplit: Int): Option[Split] = {
     ???
   }
 

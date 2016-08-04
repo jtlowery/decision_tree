@@ -40,13 +40,13 @@ class DtreeSuite extends FunSuite {
     val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
 
-    val splitResult = splitVariable(d, 1)
-    assert(splitResult.leftData === Vector(d1, d2))
-    assert(splitResult.rightData === Vector(d3, d4))
-    assert(splitResult.iGain === 1.0)
-    assert(splitResult.index === 1)
-    assert(splitResult.predicate(1) === true)
-    assert(splitResult.predicate(0) === false)
+    val splitResult = splitVariable(d, 1, 1)
+    assert(splitResult.get.leftData === Vector(d1, d2))
+    assert(splitResult.get.rightData === Vector(d3, d4))
+    assert(splitResult.get.iGain === 1.0)
+    assert(splitResult.get.index === 1)
+    assert(splitResult.get.predicate(1) === true)
+    assert(splitResult.get.predicate(0) === false)
   }
 
   test("find best split on another col -- splitVariable") {
@@ -56,13 +56,13 @@ class DtreeSuite extends FunSuite {
     val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
 
-    val splitResult = splitVariable(d, 0)
-    assert(splitResult.leftData === Vector(d1, d2, d4))
-    assert(splitResult.rightData === Vector(d3))
-    assert(splitResult.iGain === infoGain(Vector(1, 1, 2, 2), Vector(1, 1, 2), Vector(2)))
-    assert(splitResult.index === 0)
-    assert(splitResult.predicate(1) === true)
-    assert(splitResult.predicate(0) === false)
+    val splitResult = splitVariable(d, 0, 1)
+    assert(splitResult.get.leftData === Vector(d1, d2, d4))
+    assert(splitResult.get.rightData === Vector(d3))
+    assert(splitResult.get.iGain === infoGain(Vector(1, 1, 2, 2), Vector(1, 1, 2), Vector(2)))
+    assert(splitResult.get.index === 0)
+    assert(splitResult.get.predicate(1) === true)
+    assert(splitResult.get.predicate(0) === false)
   }
 
   test("find best split overall -- decideSplit") {
@@ -72,13 +72,13 @@ class DtreeSuite extends FunSuite {
     val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
 
-    val splitResult = splitVariable(d, 1)
-    assert(splitResult.leftData === Vector(d1, d2))
-    assert(splitResult.rightData === Vector(d3, d4))
-    assert(splitResult.iGain === 1.0)
-    assert(splitResult.index === 1)
-    assert(splitResult.predicate(1) === true)
-    assert(splitResult.predicate(0) === false)
+    val splitResult = splitVariable(d, 1, 1)
+    assert(splitResult.get.leftData === Vector(d1, d2))
+    assert(splitResult.get.rightData === Vector(d3, d4))
+    assert(splitResult.get.iGain === 1.0)
+    assert(splitResult.get.index === 1)
+    assert(splitResult.get.predicate(1) === true)
+    assert(splitResult.get.predicate(0) === false)
   }
 
   test("fit basic") {
@@ -139,13 +139,19 @@ class DtreeSuite extends FunSuite {
     assert(terminateSplitting(nonZeroEntropyData, depth = 0, maxDepth = 10) === false)
   }
 
+  test("minSampleSplit stops a split would otherwise happen") {
+    val d2 = Vector(1, 1, 0, 1)
+    val d3 = Vector(0, 0, 1, 2)
+    val nonZeroEntropyData = Vector(d2, d3)
+    assert(fit(nonZeroEntropyData, depth = 0, maxDepth = 10, minSamplesSplit = 2) === Leaf(2))
+  }
+
   test("predict with a tree of a single leaf") {
     val d1 = Vector(1, 1, 1, 1)
     assert(predict(Leaf(1), d1) === 1)
     assert(predict(Leaf(2), d1) === 2)
   }
-
-
+  
   test("predict with a tree of two leaves and a single branch") {
     val d1 = Vector(1, 1, 1, 1)
     val d2 = Vector(1, 1, 0, 1)
