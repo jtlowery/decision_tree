@@ -10,3 +10,4 @@ A simple implementation of a decision tree made as practice while trying to wrap
   * ~~Simple tests~~
 - Clean up all the hard to follow tuple indexing
 - Extend for random forests
+- Extend for gbm
