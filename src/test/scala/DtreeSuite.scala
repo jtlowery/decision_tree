@@ -151,7 +151,7 @@ class DtreeSuite extends FunSuite {
     assert(predict(Leaf(1), d1) === 1)
     assert(predict(Leaf(2), d1) === 2)
   }
-  
+
   test("predict with a tree of two leaves and a single branch") {
     val d1 = Vector(1, 1, 1, 1)
     val d2 = Vector(1, 1, 0, 1)
