@@ -16,7 +16,8 @@ case class Split(leftData: Vector[Vector[AnyVal]],
                  iGain: Double,
                  index: Int,
                  predicate: AnyVal => Boolean)
-
+case class BasicSplit(splitData: (Vector[Vector[AnyVal]], Vector[Vector[AnyVal]]),
+                      predicate: AnyVal => Boolean)
 
 object Dtree {
 
@@ -82,17 +83,19 @@ object Dtree {
   def splitCategorical(data: Points, idx: Int, minSamplesSplit: Int): Option[Split] = {
     val possibleVals = data.map(x => x(idx)).distinct
     val partitions = possibleVals.map(p =>
-      (data.partition(x => x(idx) == p), (x: AnyVal) => x == p))
-    val partsWithMinSamples = partitions.filter(x => x._1._1.size > minSamplesSplit)
+      BasicSplit(data.partition(x => x(idx) == p), (x: AnyVal) => x == p))
+    val partsWithMinSamples = partitions.filter(x => x.splitData._1.size > minSamplesSplit)
     if (partsWithMinSamples.isEmpty) {
       None
     }
     else {
       val partsWithInfoGain = partsWithMinSamples.map(x => (x,
-        infoGain(data.map(z => z.last), x._1._1.map(z => z.last), x._1._2.map(z => z.last))))
+        infoGain(data.map(row => row.last),
+                  x.splitData._1.map(row => row.last),
+                  x.splitData._2.map(row => row.last))))
       val maxPartition = partsWithInfoGain.maxBy(m => m._2)
-      Some(Split(maxPartition._1._1._1, maxPartition._1._1._2,
-        maxPartition._2, idx, maxPartition._1._2))
+      Some(Split(maxPartition._1.splitData._1, maxPartition._1.splitData._2,
+        maxPartition._2, idx, maxPartition._1.predicate))
     }
   }
 
