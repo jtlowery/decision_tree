@@ -9,5 +9,6 @@ A simple implementation of a decision tree made as practice while trying to wrap
 - Add tests for fit and predict
   * ~~Simple tests~~
 - Clean up all the hard to follow tuple indexing
+  * Done somewhat?
 - Extend for random forests
 - Extend for gbm
