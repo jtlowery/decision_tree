@@ -126,6 +126,12 @@ object Dtree {
     entropy(parent) - splitsEntropy
   }
 
+  def giniImpurity(labels: Labels): Double = {
+    1 - labels.groupBy(x => x).
+      mapValues(x => x.length.toDouble / labels.length.toDouble).
+      mapValues(p => p * p).
+      foldLeft(0.0)(_ + _._2)
+  }
 
 }
 

@@ -177,4 +177,10 @@ class DtreeSuite extends FunSuite {
     assert(findType(1.0) === "Double")
   }
 
+  test("gini impurity - basic cases") {
+    assert(giniImpurity(Vector(1, 1, 1)) === 0)
+    assert(giniImpurity(Vector(1, 1, 0, 0)) === 0.5)
+    giniImpurity(Vector(1, 0, 0, 0, 0, 0)) should be (0.278 +- .001)
+  }
+
 }
