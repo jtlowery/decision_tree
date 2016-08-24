@@ -183,4 +183,10 @@ class DtreeSuite extends FunSuite {
     giniImpurity(Vector(1, 0, 0, 0, 0, 0)) should be (0.278 +- .001)
   }
 
+  test("misclassification error - basic cases") {
+    assert(misclassificationError(Vector(1, 1, 1)) === 0)
+    assert(misclassificationError(Vector(1, 1, 0, 0)) === 0.5)
+    misclassificationError(Vector(1, 0, 0, 0, 0, 0)) should be (0.167 +- .001)
+  }
+
 }

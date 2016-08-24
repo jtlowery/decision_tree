@@ -133,6 +133,12 @@ object Dtree {
       foldLeft(0.0)(_ + _._2)
   }
 
+  def misclassificationError(labels: Labels): Double = {
+    1 - labels.groupBy(x => x).
+      map(x => x._2.length.toDouble / labels.length.toDouble).
+      maxBy(x => x)
+  }
+
 }
 
 
