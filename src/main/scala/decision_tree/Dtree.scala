@@ -139,6 +139,10 @@ object Dtree {
       maxBy(x => x)
   }
 
+  def meanSquaredError(labels: Vector[Double], predictions: Vector[Double]): Double = {
+    labels.zip(predictions).
+      foldLeft(0.0)((acc, t) => acc + scala.math.pow(t._1 - t._2, 2))
+  }
 }
 
 
