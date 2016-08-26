@@ -191,7 +191,7 @@ class DtreeSuite extends FunSuite {
 
   test("mean squared error - basic cases") {
     assert(meanSquaredError(Vector(1.1, 2.2, 3.2), Vector(1.1, 2.2, 3.2)) === 0.0)
-    meanSquaredError(Vector(1.1, 2.2, 3.2), Vector(1.0, 2.0, 3.0)) should be (.09 +- .001)
+    meanSquaredError(Vector(1.1, 2.2, 3.2), Vector(1.0, 2.0, 3.0)) should be (.03 +- .0001)
     meanSquaredError(Vector(1.0), Vector(2.0)) should be (1.0 +- .001)
   }
 }

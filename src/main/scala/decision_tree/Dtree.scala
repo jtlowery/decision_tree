@@ -141,7 +141,8 @@ object Dtree {
 
   def meanSquaredError(labels: Vector[Double], predictions: Vector[Double]): Double = {
     labels.zip(predictions).
-      foldLeft(0.0)((acc, t) => acc + scala.math.pow(t._1 - t._2, 2))
+      foldLeft(0.0)((acc, t) =>
+        acc + scala.math.pow(t._1 - t._2, 2)) / predictions.length.toDouble
   }
 }
 
