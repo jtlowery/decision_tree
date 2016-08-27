@@ -1,7 +1,6 @@
 package decision_tree
 
 
-
 sealed trait Dtree
 case class Leaf(label: AnyVal) extends Dtree
 case class Branch(left: Dtree,
@@ -103,6 +102,8 @@ object Dtree {
     // extract continuous vals and sort them
     val sortedVals = data.map(x => x(idx)).sortBy(x => x)
     // find midpoints of sorted vals
+    // this could be improved to only consider midpoints between
+    // examples from different classes
     val middleVals = sortedVals.
       zip(sortedVals.tail).
       map({ case (left: Double, right: Double) => left + (right - left) / 2 })
