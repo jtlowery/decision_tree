@@ -100,7 +100,27 @@ object Dtree {
   }
 
   def splitContinuous(data: Points, idx: Int, minSamplesSplit: Int): Option[Split] = {
-    ???
+    // extract continuous vals and sort them
+    val sortedVals = data.map(x => x(idx)).sortBy(x => x)
+    // find midpoints of sorted vals
+    val middleVals = sortedVals.
+      zip(sortedVals.tail).
+      map({ case (left: Double, right: Double) => left + (right - left) / 2 })
+    val partitions = middleVals.map(p =>
+      BasicSplit(data.partition(x => x(idx) <= p), (x: AnyVal) => x <= p))
+    val partsWithMinSamples = partitions.filter(x => x.splitData._1.size > minSamplesSplit)
+    if (partsWithMinSamples.isEmpty) {
+      None
+    }
+    else {
+      val partsWithInfoGain = partsWithMinSamples.map(x => (x,
+        infoGain(data.map(row => row.last),
+          x.splitData._1.map(row => row.last),
+          x.splitData._2.map(row => row.last))))
+      val maxPartition = partsWithInfoGain.maxBy(m => m._2)
+      Some(Split(maxPartition._1.splitData._1, maxPartition._1.splitData._2,
+        maxPartition._2, idx, maxPartition._1.predicate))
+    }
   }
 
 
