@@ -19,6 +19,7 @@ case class TreeData(features: Vector[AnyVal], label: AnyVal, rowIndex: Int)
 case class FeatureDataPoint(feature: AnyVal, label: AnyVal, rowIndex: Int, colIndex: Int)
 case class BasicSplit(splitData: (Vector[FeatureDataPoint], Vector[FeatureDataPoint]),
                       predicate: AnyVal => Boolean)
+
 object Dtree {
 
   type Labels = Vector[AnyVal]
@@ -105,18 +106,20 @@ object Dtree {
     // all possible categories
     val possibleVals = data.map(x => x.feature).distinct
     // find all partitions and corresponding predicates
-    val partitions = possibleVals.map(p =>
+    val basicSplits = possibleVals.map(p =>
       BasicSplit(data.partition(x => x.feature == p), (a: AnyVal) => a == p))
-    val partsWithMinSamples = partitions.filter(x => x.splitData._1.size > minSamplesSplit)
-    if (partsWithMinSamples.isEmpty) {
+    val basicSplitsWithMinSamples = basicSplits.filter(x => x.splitData._1.size > minSamplesSplit)
+    if (basicSplitsWithMinSamples.isEmpty) {
       None
     }
     else {
-      val partsWithInfoGain = partsWithMinSamples.map(x => (x,
+      val basicSplitsWithInfoGain = basicSplitsWithMinSamples.map(basicSplit => (basicSplit,
         infoGain(data.map(row => row.label),
-                  x.splitData._1.map(l => l.label),
-                  x.splitData._2.map(r => r.label))))
-      val maxPartition = partsWithInfoGain.maxBy(m => m._2)
+                  basicSplit.splitData._1.map(l => l.label),
+                  basicSplit.splitData._2.map(r => r.label))
+        )
+      )
+      val maxPartition = basicSplitsWithInfoGain.maxBy({ case (basicSplit, infoGain) => infoGain })
       Some(Split(maxPartition._1.splitData._1.map(l => l.rowIndex),
                   maxPartition._1.splitData._2.map(r => r.rowIndex),
                   maxPartition._2, data(0).colIndex, maxPartition._1.predicate))
@@ -127,27 +130,30 @@ object Dtree {
     ???
     /*
     // extract continuous vals and sort them
-    val sortedVals = data.map(x => x(idx)).sortBy(x => x)
+    val sortedVals = data.map(x => x.feature).sortBy(featureVal => featureVal)
     // find midpoints of sorted vals
     // this could be improved to only consider midpoints between
     // examples from different classes
     val middleVals = sortedVals.
       zip(sortedVals.tail).
       map({ case (left: Double, right: Double) => left + (right - left) / 2 })
-    val partitions = middleVals.map(p =>
-      BasicSplit(data.partition(x => x(idx) <= p), (x: AnyVal) => x <= p))
-    val partsWithMinSamples = partitions.filter(x => x.splitData._1.size > minSamplesSplit)
-    if (partsWithMinSamples.isEmpty) {
+    val basicSplits = middleVals.map(p =>
+      BasicSplit(data.partition(x => x.feature <= p), (x: AnyVal) => x <= p))
+    val basicSplitsWithMinSamples = basicSplits.filter(x => x.splitData._1.size > minSamplesSplit)
+    if (basicSplitsWithMinSamples.isEmpty) {
       None
     }
     else {
-      val partsWithInfoGain = partsWithMinSamples.map(x => (x,
-        infoGain(data.map(row => row.last),
-          x.splitData._1.map(row => row.last),
-          x.splitData._2.map(row => row.last))))
-      val maxPartition = partsWithInfoGain.maxBy(m => m._2)
-      Some(Split(maxPartition._1.splitData._1, maxPartition._1.splitData._2,
-        maxPartition._2, idx, maxPartition._1.predicate))
+      val basicSplitsWithInfoGain = basicSplitsWithMinSamples.map(basicSplit => (basicSplit,
+        infoGain(data.map(row => row.label),
+                  basicSplit.splitData._1.map(l => l.label),
+                  basicSplit.splitData._2.map(r => r.label))
+        )
+      )
+      val maxPartition = basicSplitsWithInfoGain.maxBy({ case (basicSplit, infoGain) => infoGain })
+      Some(Split(maxPartition._1.splitData._1.map(l => l.rowIndex),
+                  maxPartition._1.splitData._2.map(r => r.rowIndex),
+                  maxPartition._2, data(0).colIndex, maxPartition._1.predicate))
     }
     */
   }
