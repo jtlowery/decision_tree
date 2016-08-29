@@ -83,7 +83,7 @@ class DtreeSuite extends FunSuite {
     val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
     val dt = prepareData(d)
-    val splitResult = splitVariable(dt, 0, 1)
+    val splitResult = splitVariable(dt, colIdx = 0, minSamplesSplit = 1)
     assert(splitResult.get.leftDataRowIndexes === Vector(0, 1, 3))
     assert(splitResult.get.rightDataRowIndexes === Vector(2))
     assert(splitResult.get.iGain === infoGain(Vector(1, 1, 2, 2), Vector(1, 1, 2), Vector(2)))
@@ -93,8 +93,6 @@ class DtreeSuite extends FunSuite {
   }
 
   test("splitCategorical - basic case") {
-    //splitCategorical(data: Vector[FeatureDataPoint], minSamplesSplit: Int): Option[Split]
-    //FeatureDataPoint(feature: AnyVal, label: AnyVal, rowIndex: Int, colIndex: Int)
     val fd1 = FeatureDataPoint(feature = 1, label = 1, rowIndex = 0, colIndex = 0)
     val fd2 = FeatureDataPoint(feature = 1, label = 1, rowIndex = 1, colIndex = 0)
     val fd3 = FeatureDataPoint(feature = 2, label = 2, rowIndex = 2, colIndex = 0)
@@ -109,8 +107,6 @@ class DtreeSuite extends FunSuite {
   }
 
   test("splitCategorical - uneven split") {
-    //splitCategorical(data: Vector[FeatureDataPoint], minSamplesSplit: Int): Option[Split]
-    //FeatureDataPoint(feature: AnyVal, label: AnyVal, rowIndex: Int, colIndex: Int)
     val fd1 = FeatureDataPoint(feature = 1, label = 1, rowIndex = 0, colIndex = 0)
     val fd2 = FeatureDataPoint(feature = 1, label = 1, rowIndex = 1, colIndex = 0)
     val fd3 = FeatureDataPoint(feature = 1, label = 1, rowIndex = 2, colIndex = 0)
@@ -158,7 +154,7 @@ class DtreeSuite extends FunSuite {
         assert(idx === 1)
         assert(splitPred(1) === true)
         assert(splitPred(0) === false)
-        assert(data === d)
+        assert(data === Vector(0,1,2,3))
       case Leaf(_) => assert(false)
     }
   }

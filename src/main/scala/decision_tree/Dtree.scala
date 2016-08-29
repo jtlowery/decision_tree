@@ -45,7 +45,6 @@ object Dtree {
           minSamplesSplit: Int = 1): Dtree = {
 
     val data = dataRowLookup(dataRowIndexes, fullData)
-    println(data.length)
     // if splitting should be stopped - terminate in a leaf
     if (terminateSplitting(data, depth, maxDepth)) {
       Leaf(findLabel(data.map(row => row.label)))
@@ -96,7 +95,8 @@ object Dtree {
   }
 
   def splitVariable(data: Vector[TreeData], colIdx: Int, minSamplesSplit: Int): Option[Split] = {
-    val featureData = data.map(x => FeatureDataPoint(x.features(colIdx), x.label, x.rowIndex, colIdx))
+    val featureData = data.map(x =>
+      FeatureDataPoint(feature = x.features(colIdx), label = x.label, rowIndex = x.rowIndex, colIndex = colIdx))
     if (findType(featureData(0).feature) == "Int") splitCategorical(featureData, minSamplesSplit)
     else splitContinuous(featureData, minSamplesSplit)
   }
@@ -113,9 +113,9 @@ object Dtree {
     }
     else {
       val partsWithInfoGain = partsWithMinSamples.map(x => (x,
-        infoGain(data.map(row => row.feature),
-                  x.splitData._1.map(l => l.feature),
-                  x.splitData._2.map(r => r.feature))))
+        infoGain(data.map(row => row.label),
+                  x.splitData._1.map(l => l.label),
+                  x.splitData._2.map(r => r.label))))
       val maxPartition = partsWithInfoGain.maxBy(m => m._2)
       Some(Split(maxPartition._1.splitData._1.map(l => l.rowIndex),
                   maxPartition._1.splitData._2.map(r => r.rowIndex),
