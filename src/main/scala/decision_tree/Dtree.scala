@@ -1,5 +1,6 @@
 package decision_tree
 
+import decision_tree.Criterion._
 sealed trait Dtree
 
 case class Leaf(label: AnyVal) extends Dtree
@@ -158,19 +159,10 @@ object Dtree {
     */
   }
 
-  def log2(x: Double): Double = scala.math.log(x) / scala.math.log(2)
-
   def findType(o: AnyVal): String = o match {
     case d: Double => "Double"
     case i: Int => "Int"
     case _ => "Other"
-  }
-
-  def entropy(labels: Labels): Double = {
-    labels.groupBy(x => x).
-      mapValues(x => x.length.toDouble / labels.length).
-      mapValues(p => -p * log2(p)).
-      foldLeft(0.0)(_ + _._2)
   }
 
   def infoGain(parent: Labels, split1: Labels, split2: Labels): Double = {
@@ -180,24 +172,6 @@ object Dtree {
     entropy(parent) - splitsEntropy
   }
 
-  def giniImpurity(labels: Labels): Double = {
-    1 - labels.groupBy(x => x).
-      mapValues(x => x.length.toDouble / labels.length.toDouble).
-      mapValues(p => p * p).
-      foldLeft(0.0)(_ + _._2)
-  }
-
-  def misclassificationError(labels: Labels): Double = {
-    1 - labels.groupBy(x => x).
-      map(x => x._2.length.toDouble / labels.length.toDouble).
-      maxBy(x => x)
-  }
-
-  def meanSquaredError(labels: Vector[Double], predictions: Vector[Double]): Double = {
-    labels.zip(predictions).
-      foldLeft(0.0)((acc, t) =>
-        acc + scala.math.pow(t._1 - t._2, 2)) / predictions.length.toDouble
-  }
 }
 
 
