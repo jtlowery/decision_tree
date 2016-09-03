@@ -182,15 +182,13 @@ class DtreeSuite extends FunSuite {
     val d = Vector(d1, d2)
     val labels = d.map(x => x.last)
     val data = d.map(x => x.dropRight(1).map(z => Left(z)))
-    val dt = prepareData(rawData = data, labels = labels)
     val zeroEntropyData = prepareData(rawData = data, labels = labels)
     assert(terminateSplitting(zeroEntropyData, depth = 1, maxDepth = 10) === true)
 
     val dd = Vector(d1, d2, d3)
     val labels2 = dd.map(x => x.last)
     val data2 = dd.map(x => x.dropRight(1).map(z => Left(z)))
-    val dt2 = prepareData(rawData = data2, labels = labels2)
-    val nonZeroEntropyData = prepareData(rawData = data, labels = labels)
+    val nonZeroEntropyData = prepareData(rawData = data2, labels = labels2)
     assert(terminateSplitting(nonZeroEntropyData, depth = 1, maxDepth = 10) === false)
   }
 
@@ -225,18 +223,19 @@ class DtreeSuite extends FunSuite {
   }
 
   test("predict with a tree of two leaves and a single branch") {
-    val d1 = Vector(1, 1, 1, 1).map(x => Left(x))
-    val d2 = Vector(1, 1, 0, 1).map(x => Left(x))
-    val d3 = Vector(0, 0, 1, 2).map(x => Left(x))
-    val d4 = Vector(1, 0, 0, 2).map(x => Left(x))
+    val d1 = Vector(1, 1, 1, 1).dropRight(1).map(x => Left(x))
+    val d2 = Vector(1, 1, 0, 1).dropRight(1).map(x => Left(x))
+    val d3 = Vector(0, 0, 1, 2).dropRight(1).map(x => Left(x))
+    val d4 = Vector(1, 0, 0, 2).dropRight(1).map(x => Left(x))
 
-    val testTree = Branch(Leaf(1), Leaf(2), 0, 1.0, 1, (x: Either[Int, Double]) => Left(x) == 1, Vector(0,1,2,3))
+    val testTree = Branch(left = Leaf(1), right = Leaf(2), depth = 0, informationGain = 1.0, splitCol = 1,
+      splitPredicate = (x: Either[Int, Double]) => x == Left(1), dataRowIndexes = Vector(0,1,2,3))
     assert(predict(testTree, d1) === 1)
     assert(predict(testTree, d2) === 1)
     assert(predict(testTree, d3) === 2)
     assert(predict(testTree, d4) === 2)
 
-    val testTree2 = Branch(Leaf(2), Leaf(1), 0, 1.0, 1, (x: Either[Int, Double]) => Left(x) == 0, Vector(0,1,2,3))
+    val testTree2 = Branch(Leaf(2), Leaf(1), 0, 1.0, 1, (x: Either[Int, Double]) => x == Left(0), Vector(0,1,2,3))
     assert(predict(testTree2, d1) === 1)
     assert(predict(testTree2, d2) === 1)
     assert(predict(testTree2, d3) === 2)

@@ -113,7 +113,7 @@ object Dtree {
     val possibleVals = data.map(x => x.feature).distinct
     // find all partitions and corresponding predicates
     val basicSplits = possibleVals.map(p =>
-      BasicSplit(data.partition(x => x.feature == p), (a: Either[Int, Double]) => Left(a) == p))
+      BasicSplit(data.partition(x => x.feature == p), (a: Either[Int, Double]) => a == p))
     val basicSplitsWithMinSamples = basicSplits.filter(x => x.splitData._1.size > minSamplesSplit)
     if (basicSplitsWithMinSamples.isEmpty) {
       None
