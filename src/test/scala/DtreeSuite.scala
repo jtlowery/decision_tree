@@ -14,19 +14,20 @@ class DtreeSuite extends FunSuite {
 
   test("dataprep - simple cases") {
     assert(
-      prepareData(Vector(Vector(1, 1))) === Vector(TreeData(features = Vector(1), label = 1, rowIndex = 0))
+      prepareData(rawData = Vector(Vector(Left(1))), labels = Vector(1)) ===
+        Vector(TreeData(features = Vector(Left(1)), label = 1, rowIndex = 0))
     )
     assert(
-      prepareData(Vector(Vector(1, 1, 1), Vector(2, 1, 0))) ===
-        Vector(TreeData(features = Vector(1, 1), label = 1, rowIndex = 0),
-          TreeData(features = Vector(2, 1), label = 0, rowIndex = 1))
+      prepareData(rawData = Vector(Vector(Left(1), Left(1)), Vector(Left(2), Left(1))), labels = Vector(1, 0)) ===
+        Vector(TreeData(features = Vector(Left(1), Left(1)), label = 1, rowIndex = 0),
+          TreeData(features = Vector(Left(2), Left(1)), label = 0, rowIndex = 1))
     )
   }
 
   test("dataRowIndexLookup - basic cases") {
-    val td1 = TreeData(features = Vector(1, 1), label = 1, rowIndex = 0)
-    val td2 = TreeData(features = Vector(2, 1), label = 0, rowIndex = 1)
-    val td3 = TreeData(features = Vector(2, 2), label = 0, rowIndex = 2)
+    val td1 = TreeData(features = Vector(Left(1), Left(1)), label = 1, rowIndex = 0)
+    val td2 = TreeData(features = Vector(Left(2), Left(1)), label = 0, rowIndex = 1)
+    val td3 = TreeData(features = Vector(Left(2), Left(2)), label = 0, rowIndex = 2)
 
     assert(
       dataRowLookup(Vector(0), Vector(td1)) === Vector(td1)
@@ -56,14 +57,16 @@ class DtreeSuite extends FunSuite {
     val d3 = Vector(0, 0, 1, 2)
     val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
-    val dt = prepareData(d)
+    val labels = d.map(x => x.last)
+    val data = d.map(x => x.dropRight(1).map(z => Left(z)))
+    val dt = prepareData(rawData = data, labels = labels)
     val splitResult = splitVariable(dt, 1, 1)
     assert(splitResult.get.leftDataRowIndexes === Vector(0, 1))
     assert(splitResult.get.rightDataRowIndexes === Vector(2, 3))
     assert(splitResult.get.iGain === 1.0)
     assert(splitResult.get.colIndex === 1)
-    assert(splitResult.get.predicate(1) === true)
-    assert(splitResult.get.predicate(0) === false)
+    assert(splitResult.get.predicate(Left(1)) === true)
+    assert(splitResult.get.predicate(Left(0)) === false)
   }
 
   test("find best split on another col -- splitVariable") {
@@ -72,42 +75,44 @@ class DtreeSuite extends FunSuite {
     val d3 = Vector(0, 0, 1, 2)
     val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
-    val dt = prepareData(d)
+    val labels = d.map(x => x.last)
+    val data = d.map(x => x.dropRight(1).map(z => Left(z)))
+    val dt = prepareData(rawData = data, labels = labels)
     val splitResult = splitVariable(dt, colIdx = 0, minSamplesSplit = 1)
     assert(splitResult.get.leftDataRowIndexes === Vector(0, 1, 3))
     assert(splitResult.get.rightDataRowIndexes === Vector(2))
     assert(splitResult.get.iGain === infoGain(Vector(1, 1, 2, 2), Vector(1, 1, 2), Vector(2)))
     assert(splitResult.get.colIndex === 0)
-    assert(splitResult.get.predicate(1) === true)
-    assert(splitResult.get.predicate(0) === false)
+    assert(splitResult.get.predicate(Left(1)) === true)
+    assert(splitResult.get.predicate(Left(0)) === false)
   }
 
   test("splitCategorical - basic case") {
-    val fd1 = FeatureDataPoint(feature = 1, label = 1, rowIndex = 0, colIndex = 0)
-    val fd2 = FeatureDataPoint(feature = 1, label = 1, rowIndex = 1, colIndex = 0)
-    val fd3 = FeatureDataPoint(feature = 2, label = 2, rowIndex = 2, colIndex = 0)
-    val fd4 = FeatureDataPoint(feature = 2, label = 2, rowIndex = 3, colIndex = 0)
+    val fd1 = FeatureDataPoint(feature = Left(1), label = 1, rowIndex = 0, colIndex = 0)
+    val fd2 = FeatureDataPoint(feature = Left(1), label = 1, rowIndex = 1, colIndex = 0)
+    val fd3 = FeatureDataPoint(feature = Left(2), label = 2, rowIndex = 2, colIndex = 0)
+    val fd4 = FeatureDataPoint(feature = Left(2), label = 2, rowIndex = 3, colIndex = 0)
     val split = splitCategorical(Vector(fd1, fd2, fd3, fd4), minSamplesSplit = 1)
     assert(split.get.leftDataRowIndexes === Vector(0, 1))
     assert(split.get.rightDataRowIndexes === Vector(2, 3))
     assert(split.get.iGain === infoGain(Vector(1, 1, 2, 2), Vector(1, 1), Vector(2, 2)))
     assert(split.get.colIndex === 0)
-    assert(split.get.predicate(1) === true)
-    assert(split.get.predicate(0) === false)
+    assert(split.get.predicate(Left(1)) === true)
+    assert(split.get.predicate(Left(0)) === false)
   }
 
   test("splitCategorical - uneven split") {
-    val fd1 = FeatureDataPoint(feature = 1, label = 1, rowIndex = 0, colIndex = 0)
-    val fd2 = FeatureDataPoint(feature = 1, label = 1, rowIndex = 1, colIndex = 0)
-    val fd3 = FeatureDataPoint(feature = 1, label = 1, rowIndex = 2, colIndex = 0)
-    val fd4 = FeatureDataPoint(feature = 2, label = 2, rowIndex = 3, colIndex = 0)
+    val fd1 = FeatureDataPoint(feature = Left(1), label = 1, rowIndex = 0, colIndex = 0)
+    val fd2 = FeatureDataPoint(feature = Left(1), label = 1, rowIndex = 1, colIndex = 0)
+    val fd3 = FeatureDataPoint(feature = Left(1), label = 1, rowIndex = 2, colIndex = 0)
+    val fd4 = FeatureDataPoint(feature = Left(2), label = 2, rowIndex = 3, colIndex = 0)
     val split = splitCategorical(Vector(fd1, fd2, fd3, fd4), minSamplesSplit = 1)
     assert(split.get.leftDataRowIndexes === Vector(0, 1, 2))
     assert(split.get.rightDataRowIndexes === Vector(3))
     assert(split.get.iGain === infoGain(Vector(1, 1, 1, 2), Vector(1, 1, 1), Vector(2)))
     assert(split.get.colIndex === 0)
-    assert(split.get.predicate(1) === true)
-    assert(split.get.predicate(0) === false)
+    assert(split.get.predicate(Left(1)) === true)
+    assert(split.get.predicate(Left(0)) === false)
   }
 
   test("find best split overall -- decideSplit") {
@@ -116,14 +121,16 @@ class DtreeSuite extends FunSuite {
     val d3 = Vector(0, 0, 1, 2)
     val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
-    val dt = prepareData(d)
+    val labels = d.map(x => x.last)
+    val data = d.map(x => x.dropRight(1).map(z => Left(z)))
+    val dt = prepareData(rawData = data, labels = labels)
     val splitResult = splitVariable(dt, 1, 1)
     assert(splitResult.get.leftDataRowIndexes === Vector(0, 1))
     assert(splitResult.get.rightDataRowIndexes === Vector(2, 3))
     assert(splitResult.get.iGain === 1.0)
     assert(splitResult.get.colIndex === 1)
-    assert(splitResult.get.predicate(1) === true)
-    assert(splitResult.get.predicate(0) === false)
+    assert(splitResult.get.predicate(Left(1)) === true)
+    assert(splitResult.get.predicate(Left(0)) === false)
   }
 
   test("fit basic") {
@@ -132,7 +139,9 @@ class DtreeSuite extends FunSuite {
     val d3 = Vector(0, 0, 1, 2)
     val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
-    val dt = prepareData(d)
+    val labels = d.map(x => x.last)
+    val data = d.map(x => x.dropRight(1).map(z => Left(z)))
+    val dt = prepareData(rawData = data, labels = labels)
 
     val fitResult = fit(dt, Vector(0,1,2,3))
     fitResult match {
@@ -142,8 +151,8 @@ class DtreeSuite extends FunSuite {
         assert(depth === 0)
         assert(iGain === 1.0)
         assert(idx === 1)
-        assert(splitPred(1) === true)
-        assert(splitPred(0) === false)
+        assert(splitPred(Left(1)) === true)
+        assert(splitPred(Left(0)) === false)
         assert(data === Vector(0,1,2,3))
       case Leaf(_) => assert(false)
     }
@@ -155,7 +164,9 @@ class DtreeSuite extends FunSuite {
     val d3 = Vector(0, 0, 1, 1)
     val d4 = Vector(1, 0, 0, 2)
     val d = Vector(d1, d2, d3, d4)
-    val dt = prepareData(d)
+    val labels = d.map(x => x.last)
+    val data = d.map(x => x.dropRight(1).map(z => Left(z)))
+    val dt = prepareData(rawData = data, labels = labels)
     val fitResult = fit(dt, dataRowIndexes = Vector(0,1,2,3), depth = 0, maxDepth = 1)
     fitResult match {
       case Leaf(x) => assert(x === 1)
@@ -168,18 +179,29 @@ class DtreeSuite extends FunSuite {
     val d1 = Vector(1, 1, 1, 1)
     val d2 = Vector(1, 1, 0, 1)
     val d3 = Vector(0, 0, 1, 2)
-
-    val zeroEntropyData = prepareData(Vector(d1, d2))
+    val d = Vector(d1, d2)
+    val labels = d.map(x => x.last)
+    val data = d.map(x => x.dropRight(1).map(z => Left(z)))
+    val dt = prepareData(rawData = data, labels = labels)
+    val zeroEntropyData = prepareData(rawData = data, labels = labels)
     assert(terminateSplitting(zeroEntropyData, depth = 1, maxDepth = 10) === true)
 
-    val nonZeroEntropyData = prepareData(Vector(d1, d2, d3))
+    val dd = Vector(d1, d2, d3)
+    val labels2 = dd.map(x => x.last)
+    val data2 = dd.map(x => x.dropRight(1).map(z => Left(z)))
+    val dt2 = prepareData(rawData = data2, labels = labels2)
+    val nonZeroEntropyData = prepareData(rawData = data, labels = labels)
     assert(terminateSplitting(nonZeroEntropyData, depth = 1, maxDepth = 10) === false)
   }
 
   test("test terminate splitting on depth") {
     val d2 = Vector(1, 1, 0, 1)
     val d3 = Vector(0, 0, 1, 2)
-    val nonZeroEntropyData = prepareData(Vector(d2, d3))
+    val d = Vector(d2, d3)
+    val labels = d.map(x => x.last)
+    val data = d.map(x => x.dropRight(1).map(z => Left(z)))
+    val dt = prepareData(rawData = data, labels = labels)
+    val nonZeroEntropyData = prepareData(rawData = data, labels = labels)
     assert(terminateSplitting(nonZeroEntropyData, depth = 0, maxDepth = 1) === true)
     assert(terminateSplitting(nonZeroEntropyData, depth = 0, maxDepth = 10) === false)
   }
@@ -187,32 +209,34 @@ class DtreeSuite extends FunSuite {
   test("minSampleSplit stops a split would otherwise happen") {
     val d2 = Vector(1, 1, 0, 1)
     val d3 = Vector(0, 0, 1, 2)
-    val nonZeroEntropyData = prepareData(Vector(d2, d3))
+    val d = Vector(d2, d3)
+    val labels = d.map(x => x.last)
+    val data = d.map(x => x.dropRight(1).map(z => Left(z)))
+    val dt = prepareData(rawData = data, labels = labels)
+    val nonZeroEntropyData = prepareData(rawData = data, labels = labels)
     assert(fit(nonZeroEntropyData, dataRowIndexes = Vector(0, 1), depth = 0, maxDepth = 10, minSamplesSplit = 2)
       === Leaf(2))
   }
 
   test("predict with a tree of a single leaf") {
-    val d1 = Vector(1, 1, 1, 1)
+    val d1 = Vector(Left(1), Left(1), Left(1), Left(1))
     assert(predict(Leaf(1), d1) === 1)
     assert(predict(Leaf(2), d1) === 2)
   }
 
   test("predict with a tree of two leaves and a single branch") {
-    val d1 = Vector(1, 1, 1, 1)
-    val d2 = Vector(1, 1, 0, 1)
-    val d3 = Vector(0, 0, 1, 2)
-    val d4 = Vector(1, 0, 0, 2)
-    val d = Vector(d1, d2, d3, d4)
-    val dt = prepareData(d)
+    val d1 = Vector(1, 1, 1, 1).map(x => Left(x))
+    val d2 = Vector(1, 1, 0, 1).map(x => Left(x))
+    val d3 = Vector(0, 0, 1, 2).map(x => Left(x))
+    val d4 = Vector(1, 0, 0, 2).map(x => Left(x))
 
-    val testTree = Branch(Leaf(1), Leaf(2), 0, 1.0, 1, (x: AnyVal) => x == 1, Vector(0,1,2,3))
+    val testTree = Branch(Leaf(1), Leaf(2), 0, 1.0, 1, (x: Either[Int, Double]) => Left(x) == 1, Vector(0,1,2,3))
     assert(predict(testTree, d1) === 1)
     assert(predict(testTree, d2) === 1)
     assert(predict(testTree, d3) === 2)
     assert(predict(testTree, d4) === 2)
 
-    val testTree2 = Branch(Leaf(2), Leaf(1), 0, 1.0, 1, (x: AnyVal) => x == 0, Vector(0,1,2,3))
+    val testTree2 = Branch(Leaf(2), Leaf(1), 0, 1.0, 1, (x: Either[Int, Double]) => Left(x) == 0, Vector(0,1,2,3))
     assert(predict(testTree2, d1) === 1)
     assert(predict(testTree2, d2) === 1)
     assert(predict(testTree2, d3) === 2)

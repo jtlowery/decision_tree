@@ -3,32 +3,35 @@ package decision_tree
 import decision_tree.Criterion._
 sealed trait Dtree
 
-case class Leaf(label: AnyVal) extends Dtree
+case class Leaf(label: Int) extends Dtree
 case class Branch(left: Dtree,
                   right: Dtree,
                   depth: Int,
                   informationGain: Double,
                   splitCol: Int,
-                  splitPredicate: AnyVal => Boolean,
+                  splitPredicate: Either[Int, Double] => Boolean,
                   dataRowIndexes: Vector[Int]) extends Dtree
 case class Split(leftDataRowIndexes: Vector[Int],
                  rightDataRowIndexes: Vector[Int],
                  iGain: Double,
                  colIndex: Int,
-                 predicate: AnyVal => Boolean)
-case class TreeData(features: Vector[AnyVal], label: AnyVal, rowIndex: Int)
-case class FeatureDataPoint(feature: AnyVal, label: AnyVal, rowIndex: Int, colIndex: Int)
+                 predicate: Either[Int, Double] => Boolean)
+case class TreeData(features: Vector[Either[Int, Double]], label: Int, rowIndex: Int)
+case class FeatureDataPoint(feature: Either[Int, Double], label: Int, rowIndex: Int, colIndex: Int)
 case class BasicSplit(splitData: (Vector[FeatureDataPoint], Vector[FeatureDataPoint]),
-                      predicate: AnyVal => Boolean)
+                      predicate: Either[Int, Double] => Boolean)
 
 object Dtree {
 
-  type Labels = Vector[AnyVal]
-  type Point = Vector[AnyVal]
+  type Labels = Vector[Int]
+  type Point = Vector[Either[Int, Double]]
   type Points = Vector[Point]
 
-  def prepareData(rawData: Points): Vector[TreeData] = {
-    rawData.zipWithIndex.map({case (pt: Point, rowIdx: Int) => TreeData(pt.dropRight(1), pt.last, rowIdx)})
+  def prepareData(rawData: Points, labels: Labels): Vector[TreeData] = {
+    rawData.
+      zip(labels).
+      zipWithIndex.
+      map({case ((pt: Point, label: Int), rowIdx: Int) => TreeData(pt, label, rowIdx)})
   }
 
   def predict(dt: Dtree, point: Point): AnyVal =
@@ -75,7 +78,7 @@ object Dtree {
     (entropy(data.map(row => row.label)) == 0) || (depth >= maxDepth - 1)
   }
 
-  def findLabel(labels: Labels): AnyVal = {
+  def findLabel(labels: Labels): Int = {
     labels.groupBy(x => x).maxBy(_._2.size)._1
   }
 
@@ -99,8 +102,10 @@ object Dtree {
   def splitVariable(data: Vector[TreeData], colIdx: Int, minSamplesSplit: Int): Option[Split] = {
     val featureData = data.map(x =>
       FeatureDataPoint(feature = x.features(colIdx), label = x.label, rowIndex = x.rowIndex, colIndex = colIdx))
-    if (findType(featureData(0).feature) == "Int") splitCategorical(featureData, minSamplesSplit)
-    else splitContinuous(featureData, minSamplesSplit)
+    featureData(0).feature match {
+      case Left(i) => splitCategorical(featureData, minSamplesSplit)
+      case Right(d) => splitContinuous(featureData, minSamplesSplit)
+    }
   }
 
   def splitCategorical(data: Vector[FeatureDataPoint], minSamplesSplit: Int): Option[Split] = {
@@ -108,7 +113,7 @@ object Dtree {
     val possibleVals = data.map(x => x.feature).distinct
     // find all partitions and corresponding predicates
     val basicSplits = possibleVals.map(p =>
-      BasicSplit(data.partition(x => x.feature == p), (a: AnyVal) => a == p))
+      BasicSplit(data.partition(x => x.feature == p), (a: Either[Int, Double]) => Left(a) == p))
     val basicSplitsWithMinSamples = basicSplits.filter(x => x.splitData._1.size > minSamplesSplit)
     if (basicSplitsWithMinSamples.isEmpty) {
       None
@@ -166,6 +171,7 @@ object Dtree {
   }
 
   def infoGain(parent: Labels, split1: Labels, split2: Labels): Double = {
+    // this should be altered to allow entropy to be swapped out at some point
     val totalLength = (split1.length + split2.length).toDouble
     val splitsEntropy = (split1.length / totalLength) * entropy(split1) +
       (split2.length / totalLength) * entropy(split2)
