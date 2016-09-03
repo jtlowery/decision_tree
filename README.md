@@ -2,7 +2,7 @@
 A simple implementation of a decision tree made as practice while trying to wrap my head around Scala and functional programmming.
 
 # Future Work
-- Add support for splitting on continuous variables
+- ~~Add support for splitting on continuous variables~~
 - ~~Refactor so that splits are made on functions not specific values~~
 - Add support for regression
 - ~~Add Gini impurity~~
