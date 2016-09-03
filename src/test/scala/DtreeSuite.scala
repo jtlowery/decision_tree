@@ -101,6 +101,20 @@ class DtreeSuite extends FunSuite {
     assert(split.get.predicate(Left(0)) === false)
   }
 
+  test("splitContinuous - basic case") {
+    val fd1 = FeatureDataPoint(feature = Right(1.0), label = 1, rowIndex = 0, colIndex = 0)
+    val fd2 = FeatureDataPoint(feature = Right(1.1), label = 1, rowIndex = 1, colIndex = 0)
+    val fd3 = FeatureDataPoint(feature = Right(1.7), label = 2, rowIndex = 2, colIndex = 0)
+    val fd4 = FeatureDataPoint(feature = Right(2.2), label = 2, rowIndex = 3, colIndex = 0)
+    val split = splitContinuous(Vector(fd1, fd2, fd3, fd4), minSamplesSplit = 1)
+    assert(split.get.leftDataRowIndexes === Vector(0, 1))
+    assert(split.get.rightDataRowIndexes === Vector(2, 3))
+    assert(split.get.iGain === infoGain(Vector(1, 1, 2, 2), Vector(1, 1), Vector(2, 2)))
+    assert(split.get.colIndex === 0)
+    assert(split.get.predicate(Right(1.1)) === true)
+    assert(split.get.predicate(Right(1.7)) === false)
+  }
+
   test("splitCategorical - uneven split") {
     val fd1 = FeatureDataPoint(feature = Left(1), label = 1, rowIndex = 0, colIndex = 0)
     val fd2 = FeatureDataPoint(feature = Left(1), label = 1, rowIndex = 1, colIndex = 0)

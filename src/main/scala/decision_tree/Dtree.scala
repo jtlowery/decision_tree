@@ -133,18 +133,15 @@ object Dtree {
   }
 
   def splitContinuous(data: Vector[FeatureDataPoint], minSamplesSplit: Int): Option[Split] = {
-    ???
-    /*
     // extract continuous vals and sort them
-    val sortedVals = data.map(x => x.feature).sortBy(featureVal => featureVal)
+    val sortedVals = data.map(x => x.feature).sortBy(featureVal => featureVal.right.get)
     // find midpoints of sorted vals
-    // this could be improved to only consider midpoints between
-    // examples from different classes
+    // TODO improve to only consider midpoints between examples from different classes
     val middleVals = sortedVals.
       zip(sortedVals.tail).
-      map({ case (left: Double, right: Double) => left + (right - left) / 2 })
+      map({ case (left, right) => left.right.get + (right.right.get - left.right.get) / 2 })
     val basicSplits = middleVals.map(p =>
-      BasicSplit(data.partition(x => x.feature <= p), (x: AnyVal) => x <= p))
+      BasicSplit(data.partition(x => x.feature.right.get <= p), (a: Either[Int, Double]) => a.right.get <= p))
     val basicSplitsWithMinSamples = basicSplits.filter(x => x.splitData._1.size > minSamplesSplit)
     if (basicSplitsWithMinSamples.isEmpty) {
       None
@@ -161,7 +158,6 @@ object Dtree {
                   maxPartition._1.splitData._2.map(r => r.rowIndex),
                   maxPartition._2, data(0).colIndex, maxPartition._1.predicate))
     }
-    */
   }
 
   def findType(o: AnyVal): String = o match {
