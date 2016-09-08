@@ -9,22 +9,22 @@ case class Branch(left: Dtree,
                   depth: Int,
                   informationGain: Double,
                   splitCol: Int,
-                  splitPredicate: Either[Int, Double] => Boolean,
+                  splitPredicate: Double => Boolean,
                   dataRowIndexes: Vector[Int]) extends Dtree
 case class Split(leftDataRowIndexes: Vector[Int],
                  rightDataRowIndexes: Vector[Int],
                  iGain: Double,
                  colIndex: Int,
-                 predicate: Either[Int, Double] => Boolean)
-case class TreeData(features: Vector[Either[Int, Double]], label: Int, rowIndex: Int)
-case class FeatureDataPoint(feature: Either[Int, Double], label: Int, rowIndex: Int, colIndex: Int)
+                 predicate: Double => Boolean)
+case class TreeData(features: Vector[Double], label: Int, rowIndex: Int)
+case class FeatureDataPoint(feature: Double, label: Int, rowIndex: Int, colIndex: Int)
 case class BasicSplit(splitData: (Vector[FeatureDataPoint], Vector[FeatureDataPoint]),
-                      predicate: Either[Int, Double] => Boolean)
+                      predicate: Double => Boolean)
 
 object Dtree {
 
   type Labels = Vector[Int]
-  type Point = Vector[Either[Int, Double]]
+  type Point = Vector[Double]
   type Points = Vector[Point]
 
   def prepareData(rawData: Points, labels: Labels): Vector[TreeData] = {
@@ -102,10 +102,11 @@ object Dtree {
   def splitVariable(data: Vector[TreeData], colIdx: Int, minSamplesSplit: Int): Option[Split] = {
     val featureData = data.map(x =>
       FeatureDataPoint(feature = x.features(colIdx), label = x.label, rowIndex = x.rowIndex, colIndex = colIdx))
-    featureData(0).feature match {
-      case Left(i) => splitCategorical(featureData, minSamplesSplit)
-      case Right(d) => splitContinuous(featureData, minSamplesSplit)
+    val numUnique = featureData.map(x => x.feature).distinct.length
+    if (numUnique > 2) {
+      splitContinuous(featureData, minSamplesSplit)
     }
+    else splitCategorical(featureData, minSamplesSplit)
   }
 
   def splitCategorical(data: Vector[FeatureDataPoint], minSamplesSplit: Int): Option[Split] = {
@@ -113,7 +114,7 @@ object Dtree {
     val possibleVals = data.map(x => x.feature).distinct
     // find all partitions and corresponding predicates
     val basicSplits = possibleVals.map(p =>
-      BasicSplit(data.partition(x => x.feature == p), (a: Either[Int, Double]) => a == p))
+      BasicSplit(data.partition(x => x.feature == p), (a: Double) => a == p))
     val basicSplitsWithMinSamples = basicSplits.filter(x => x.splitData._1.size > minSamplesSplit)
     if (basicSplitsWithMinSamples.isEmpty) {
       None
@@ -134,14 +135,14 @@ object Dtree {
 
   def splitContinuous(data: Vector[FeatureDataPoint], minSamplesSplit: Int): Option[Split] = {
     // extract continuous vals and sort them
-    val sortedVals = data.map(x => x.feature).sortBy(featureVal => featureVal.right.get)
+    val sortedVals = data.map(x => x.feature).sortBy(featureVal => featureVal)
     // find midpoints of sorted vals
     // TODO improve to only consider midpoints between examples from different classes
     val middleVals = sortedVals.
       zip(sortedVals.tail).
-      map({ case (left, right) => left.right.get + (right.right.get - left.right.get) / 2 })
+      map({ case (left, right) => left + (right - left) / 2 })
     val basicSplits = middleVals.map(p =>
-      BasicSplit(data.partition(x => x.feature.right.get <= p), (a: Either[Int, Double]) => a.right.get <= p))
+      BasicSplit(data.partition(x => x.feature <= p), (a: Double) => a <= p))
     val basicSplitsWithMinSamples = basicSplits.filter(x => x.splitData._1.size > minSamplesSplit)
     if (basicSplitsWithMinSamples.isEmpty) {
       None
