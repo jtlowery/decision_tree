@@ -7,8 +7,6 @@ A simple implementation of a decision tree made as practice while trying to wrap
 - ~~Add Gini impurity~~
 - ~~Add tests for fit and predict~~
   * ~~Simple tests~~
-- Clean up all the hard to follow tuple indexing
-  * Done somewhat?
 - Compare to performance of other packages
 - Extend for regression
 - Extend for random forests
